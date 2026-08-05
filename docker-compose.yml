@@ -1,0 +1,73 @@
+FROM 21.07
+
+Service:
+  apache_base:
+    image: apache_base:latest
+    build:./apache
+    container_name: apache_base
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./apache:/var/www/html
+  
+  service_bridge:
+    image: service_bridge:latest
+    build: ./service/service-bridge
+    container_name: service_bridge
+    restart: always
+    ports:
+      - "8761:8761"
+    volumes:
+      - ./service-bridge:/app
+    depends_on:
+      - apache_base
+  
+  auth_service:
+    image: auth_service:latest
+    build: ./service/auth-service
+    container_name: auth_service
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./auth:/app
+    depends_on:
+      - service_bridge
+    
+
+  document_service:
+    image: document_service:latest
+    build: ./service/document-service
+    container_name: document_service
+    restart: always
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./document:/app
+    depends_on:
+      - service_bridge
+  
+  notification_service:
+    image: notification_service:latest
+    build: ./service/notification-service
+    container_name: notification_service
+    restart: always
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./notification:/app
+    depends_on:
+      - service_bridge
+    
+  workflow_service:
+    image: workflow_service:latest
+    build: ./service/workflow-service
+    container_name: workflow_service
+    restart: always
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./workflow:/app
+    depends_on:
+      - service_bridge
