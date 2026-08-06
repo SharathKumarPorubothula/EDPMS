@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Flask, request, jsonify
 import os
 import bcrypt
 
@@ -6,12 +6,12 @@ from validators import Validators
 from ace_logger import AceLogger
 from db_utils import DBUtils
 
-register_bp = Blueprint("register", __name__)
+app = Flask(__name__)
 
 logger = AceLogger.get_logger("auth_service")
 
 
-@register_bp.route("/register", methods=["POST"])
+@app.route("/register", methods=["POST"])
 def register():
     """
     Register a new application user.
@@ -182,3 +182,231 @@ def register():
         if connection:
 
             DBUtils.close(connection)
+            
+
+@app.route("/login", methods=["POST"])
+def login():
+    """
+    Authenticate user and generate JWT access token.
+    """
+
+    logger.info("Login request received.")
+
+    user_connection = None
+    audit_connection = None
+
+    try:
+
+        data = request.get_json()
+
+        if not data:
+
+            logger.warning("Request body is empty.")
+
+            return jsonify({
+                "status": "error",
+                "message": "Request body cannot be empty."
+            }), 400
+
+        # ----------------------------------------
+        # Validate Request
+        # ----------------------------------------
+
+        status, message = Validators.validate_login(data)
+
+        if not status:
+
+            logger.warning(message)
+
+            return jsonify({
+                "status": "error",
+                "message": message
+            }), 400
+
+        email = data["email"].strip().lower()
+        password = data["password"]
+
+        # ----------------------------------------
+        # Connect Users Database
+        # ----------------------------------------
+
+        user_connection = DBUtils.get_connection(
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            database=os.getenv("DB_NAME"),
+            username=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD")
+        )
+
+        logger.info("Connected to users database.")
+
+        # ----------------------------------------
+        # Get User
+        # ----------------------------------------
+
+        select_query = """
+            SELECT
+                id,
+                name,
+                email,
+                password_hash,
+                role,
+                is_active
+            FROM users
+            WHERE email = %s
+        """
+
+        users = DBUtils.execute(
+            connection=user_connection,
+            query=select_query,
+            params=(email,)
+        )
+
+        if not users:
+
+            logger.warning("Invalid login attempt.")
+
+            return jsonify({
+                "status": "error",
+                "message": "Invalid email or password."
+            }), 401
+
+        user = users[0]
+
+        # ----------------------------------------
+        # Check User Active
+        # ----------------------------------------
+
+        if not user["is_active"]:
+
+            logger.warning("Inactive user login attempt.")
+
+            return jsonify({
+                "status": "error",
+                "message": "User account is inactive."
+            }), 403
+
+        # ----------------------------------------
+        # Verify Password
+        # ----------------------------------------
+
+        if not bcrypt.checkpw(
+            password.encode("utf-8"),
+            user["password_hash"].encode("utf-8")
+        ):
+
+            logger.warning("Invalid password.")
+
+            return jsonify({
+                "status": "error",
+                "message": "Invalid email or password."
+            }), 401
+
+        logger.info("Password verified successfully.")
+
+        # ----------------------------------------
+        # Generate JWT Token
+        # ----------------------------------------
+
+        access_token = JWTUtils.generate_token(
+            user_id=user["id"],
+            email=user["email"],
+            role=user["role"]
+        )
+
+        logger.info("JWT token generated.")
+
+        # ----------------------------------------
+        # Update Login Time
+        # ----------------------------------------
+
+        update_query = """
+            UPDATE users
+            SET updated_at = NOW()
+            WHERE id = %s
+        """
+
+        DBUtils.execute(
+            connection=user_connection,
+            query=update_query,
+            params=(user["id"],)
+        )
+
+        logger.info("User login timestamp updated.")
+
+        # ----------------------------------------
+        # Audit Log
+        # ----------------------------------------
+
+        audit_connection = DBUtils.get_connection(
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            database="edpms_audit_logs",
+            username=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD")
+        )
+
+        audit_query = """
+            INSERT INTO audit_logs
+            (
+                user_id,
+                action,
+                module,
+                ip_address,
+                created_at
+            )
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                %s,
+                NOW()
+            )
+        """
+
+        DBUtils.execute(
+            connection=audit_connection,
+            query=audit_query,
+            params=(
+                user["id"],
+                "LOGIN",
+                "AUTH_SERVICE",
+                request.remote_addr
+            )
+        )
+
+        logger.info("Audit log created.")
+
+        return jsonify({
+            "status": "success",
+            "message": "Login successful.",
+            "access_token": access_token
+        }), 200
+
+    except Exception as ex:
+
+        logger.exception(f"Login failed : {ex}")
+
+        return jsonify({
+            "status": "error",
+            "message": "Internal Server Error"
+        }), 500
+
+    finally:
+
+        if user_connection:
+            DBUtils.close(user_connection)
+
+        if audit_connection:
+            DBUtils.close(audit_connection)
+
+
+
+if __name__ == "__main__":
+
+    app.run(
+        host="0.0.0.0",
+        port=8080,
+        debug=True
+    )

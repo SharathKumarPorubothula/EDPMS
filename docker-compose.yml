@@ -19,6 +19,9 @@ Service:
       - DB_PORT= ${DB_PORT}
       - DB_USER= ${DB_USER}
       - DB_PASSWORD= ${DB_PASSWORD}
+      - JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      - JWT_ALGORITHM: ${JWT_ALGORITHM}
+      - JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES}
   
   service_bridge:
     image: service_bridge:latest

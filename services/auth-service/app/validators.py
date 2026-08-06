@@ -174,3 +174,40 @@ class Validators:
             return status, message
 
         return True, None
+    
+    @staticmethod
+    def validate_login(data):
+        """
+        Validate login request.
+
+        Args:
+            data (dict): Login request body.
+
+        Returns:
+            tuple:
+                (True, None) if validation succeeds.
+                (False, message) otherwise.
+        """
+
+        required_fields = [
+            "email",
+            "password"
+        ]
+
+        for field in required_fields:
+
+            if field not in data:
+                return False, f"'{field}' is required."
+
+            if data[field] is None:
+                return False, f"'{field}' cannot be null."
+
+            if str(data[field]).strip() == "":
+                return False, f"'{field}' cannot be empty."
+
+        status, message = Validators.validate_email(data["email"])
+
+        if not status:
+            return status, message
+
+        return True, None
