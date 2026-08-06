@@ -15,6 +15,10 @@ Service:
     environment:
       - LOG_LEVEL= ${LOG_LEVEL}
       - LOG_DIR= ${LOG_DIR}
+      - DB_HOST= ${DB_HOST}
+      - DB_PORT= ${DB_PORT}
+      - DB_USER= ${DB_USER}
+      - DB_PASSWORD= ${DB_PASSWORD}
   
   service_bridge:
     image: service_bridge:latest
@@ -43,6 +47,12 @@ Service:
       - ./auth:/app
     depends_on:
       - service_bridge
+    environment:
+      - DB_HOST= ${DB_HOST}
+      - DB_PORT= ${DB_PORT}
+      - DB_NAME= ${DB_NAME}
+      - DB_USER= ${DB_USER}
+      - DB_PASSWORD= ${DB_PASSWORD}
     
 
   document_service:
@@ -58,6 +68,12 @@ Service:
       - ./document:/app
     depends_on:
       - service_bridge
+    environment:
+      - DB_HOST= ${DB_HOST}
+      - DB_PORT= ${DB_PORT}
+      - DB_NAME= ${DB_NAME}
+      - DB_USER= ${DB_USER}
+      - DB_PASSWORD= ${DB_PASSWORD}
   
   notification_service:
     image: notification_service:latest
@@ -72,6 +88,12 @@ Service:
       - ./notification:/app
     depends_on:
       - service_bridge
+    environment:
+      - DB_HOST= ${DB_HOST}
+      - DB_PORT= ${DB_PORT}
+      - DB_NAME= ${DB_NAME}
+      - DB_USER= ${DB_USER}
+      - DB_PASSWORD= ${DB_PASSWORD}
     
   workflow_service:
     image: workflow_service:latest
@@ -86,6 +108,12 @@ Service:
       - ./workflow:/app
     depends_on:
       - service_bridge
+    environment:
+      - DB_HOST= ${DB_HOST}
+      - DB_PORT= ${DB_PORT}
+      - DB_NAME= ${DB_NAME}
+      - DB_USER= ${DB_USER}
+      - DB_PASSWORD= ${DB_PASSWORD}
 
 networks:
   bridge_network:
