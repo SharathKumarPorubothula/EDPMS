@@ -1,9 +1,9 @@
-FROM ubuntu:22.04
+version: '3.6'
 
 Service:
   apache_base:
     image: apache_base:latest
-    build:./apache
+    build: ./apache
     container_name: apache_base
     restart: always
     networks:
@@ -12,6 +12,9 @@ Service:
       - "80:80"
     volumes:
       - ./apache:/var/www/html
+    environment:
+      - LOG_LEVEL= ${LOG_LEVEL}
+      - LOG_DIR= ${LOG_DIR}
   
   service_bridge:
     image: service_bridge:latest

@@ -1,0 +1,20 @@
+[
+    {
+        "login": {
+            "HOST": "auth-service",
+            "PORT": 8080
+        }
+    },
+    {
+        "register": {
+            "HOST": "auth-service",
+            "PORT": 8080
+        }
+    },
+    {
+        "send_mail": {
+            "HOST": "notification-service",
+            "PORT": 8082
+        }
+    }
+]
