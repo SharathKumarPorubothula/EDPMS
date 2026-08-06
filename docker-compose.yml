@@ -68,7 +68,8 @@ Service:
     ports:
       - "8081:8081"
     volumes:
-      - ./document:/app
+      - C:\Users\User\Desktop\New folder (2)\EDPMS\input:/input
+      - C:\Users\User\Desktop\New folder (2)\EDPMS\webfiles:/webfiles
     depends_on:
       - service_bridge
     environment:
