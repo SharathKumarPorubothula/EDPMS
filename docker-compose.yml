@@ -19,13 +19,13 @@ services:
       - DB_PORT= ${DB_PORT}
       - DB_USER= ${DB_USER}
       - DB_PASSWORD= ${DB_PASSWORD}
-      - JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      - JWT_ALGORITHM: ${JWT_ALGORITHM}
-      - JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES}
-  
+      - JWT_SECRET_KEY= ${JWT_SECRET_KEY}
+      - JWT_ALGORITHM= ${JWT_ALGORITHM}
+      - JWT_EXPIRY_MINUTES= ${JWT_EXPIRY_MINUTES}
+
   service_bridge:
     image: service_bridge:latest
-    build: ./service/service-bridge
+    build: ./services/service-bridge
     container_name: service_bridge
     restart: always
     networks:
@@ -36,10 +36,10 @@ services:
       - ./service-bridge:/app
     depends_on:
       - apache_base
-  
+
   auth_service:
     image: auth_service:latest
-    build: ./service/auth-service
+    build: ./services/auth-service
     container_name: auth_service
     restart: always
     networks:
@@ -56,20 +56,20 @@ services:
       - DB_NAME= ${DB_NAME}
       - DB_USER= ${DB_USER}
       - DB_PASSWORD= ${DB_PASSWORD}
-    
+
 
   document_service:
     image: document_service:latest
-    build: ./service/document-service
+    build: ./services/document-service
     container_name: document_service
     restart: always
     networks:
       - bridge_network
     ports:
       - "8081:8081"
-    volumes:
-      - C:\Users\User\Desktop\New folder (2)\EDPMS\input:/input
-      - C:\Users\User\Desktop\New folder (2)\EDPMS\webfiles:/webfiles
+    #volumes:
+      #- C:\Users\User\Desktop\New folder (2)\EDPMS\input:/input
+      #- C:\Users\User\Desktop\New folder (2)\EDPMS\webfiles:/webfiles
     depends_on:
       - service_bridge
     environment:
@@ -78,30 +78,30 @@ services:
       - DB_NAME= ${DB_NAME}
       - DB_USER= ${DB_USER}
       - DB_PASSWORD= ${DB_PASSWORD}
-  
-  notification_service:
-    image: notification_service:latest
-    build: ./service/notification-service
-    container_name: notification_service
-    restart: always
-    networks:
-      - bridge_network
-    ports:
-      - "8082:8082"
-    volumes:
-      - ./notification:/app
-    depends_on:
-      - service_bridge
-    environment:
-      - DB_HOST= ${DB_HOST}
-      - DB_PORT= ${DB_PORT}
-      - DB_NAME= ${DB_NAME}
-      - DB_USER= ${DB_USER}
-      - DB_PASSWORD= ${DB_PASSWORD}
-    
+
+  # notification_service:
+  #   image: notification_service:latest
+  #   build: ./services/notification-service
+  #   container_name: notification_service
+  #   restart: always
+  #   networks:
+  #     - bridge_network
+  #   ports:
+  #     - "8082:8082"
+  #   volumes:
+  #     - ./notification:/app
+  #   depends_on:
+  #     - service_bridge
+  #   environment:
+  #     - DB_HOST= ${DB_HOST}
+  #     - DB_PORT= ${DB_PORT}
+  #     - DB_NAME= ${DB_NAME}
+  #     - DB_USER= ${DB_USER}
+  #     - DB_PASSWORD= ${DB_PASSWORD}
+
   workflow_service:
     image: workflow_service:latest
-    build: ./service/workflow-service
+    build: ./services/worker-service
     container_name: workflow_service
     restart: always
     networks:
@@ -118,9 +118,10 @@ services:
       - DB_NAME= ${DB_NAME}
       - DB_USER= ${DB_USER}
       - DB_PASSWORD= ${DB_PASSWORD}
-  
+
   zookeeper:
-    image: bitnami/zookeeper
+    #image: bitnami/zookeeper
+    image: confluentinc/cp-zookeeper:7.7.1
     container_name: zookeeper
     restart: always
     environment:
@@ -131,7 +132,8 @@ services:
       - bridge_network
 
   kafka:
-    image: bitnami/kafka
+    #image: bitnami/kafka
+    image: confluentinc/cp-kafka:7.7.1
     container_name: kafka
     restart: always
     depends_on:
@@ -149,3 +151,4 @@ services:
 networks:
   bridge_network:
     driver: bridge
+

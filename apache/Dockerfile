@@ -10,11 +10,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install OS Packages
 # ==========================================
 RUN apt-get update && apt-get install -y \
-    apache2=2.4.52-1ubuntu4.16 \
-    apache2-utils=2.4.52-1ubuntu4.16 \
+    apache2 \
+    apache2-utils \
     software-properties-common \
-    python3=3.10.6-1~22.04 \
-    python3-pip=22.0.2+dfsg-1ubuntu0.7\
+    python3 \
+    python3-pip \
     python3-dev \
     libapache2-mod-wsgi-py3 \
     build-essential \
