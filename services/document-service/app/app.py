@@ -21,6 +21,9 @@ Uses the project's existing utility modules:
     ace_logger.py  -> AceLogger
     config.py      -> Config
     db_utils.py    -> DBUtils
+
+NOTE: This version is written entirely with module-level functions and
+module-level state instead of classes (no DocumentWorker class).
 """
 
 import json
@@ -304,101 +307,131 @@ def process_pdf(pdf_path):
 
 
 # ==========================================================
-# Worker: polls the input folder and fans PDFs out to threads
+# Worker state (module-level, replaces the DocumentWorker class)
 # ==========================================================
+# These globals hold everything the class used to keep as instance
+# attributes (self.running, self.executor, self._in_flight, etc).
 
-class DocumentWorker:
-    def __init__(self):
-        self.running = True
-        self.executor = ThreadPoolExecutor(
-            max_workers=Config.MAX_WORKERS,
-            thread_name_prefix="pdf-worker"
-        )
-        # Tracks files currently in flight so a slow-processing file
-        # isn't submitted twice if a later scan runs before it's moved
-        # out of the input folder.
-        self._in_flight = set()
-        self._in_flight_lock = threading.Lock()
+worker_running = True
+worker_executor = None
 
-        logger.info(f"Thread pool started with {Config.MAX_WORKERS} workers.")
+# Tracks files currently in flight so a slow-processing file isn't
+# submitted twice if a later scan runs before it's moved out of the
+# input folder.
+in_flight_files = set()
+in_flight_lock = threading.Lock()
 
-    def _run_and_release(self, file_path):
-        try:
-            process_pdf(file_path)
-        finally:
-            with self._in_flight_lock:
-                self._in_flight.discard(file_path)
 
-    def scan_input_folder(self):
-        try:
-            logger.info(f"Scanning folder : {Config.INPUT_FOLDER}")
+def worker_init():
+    """
+    Equivalent of DocumentWorker.__init__ - sets up the thread pool
+    and resets worker state. Call this once before worker_start().
+    """
+    global worker_executor, worker_running
 
-            if not os.path.exists(Config.INPUT_FOLDER):
-                logger.warning(f"Input folder not found : {Config.INPUT_FOLDER}")
-                return
+    worker_running = True
+    worker_executor = ThreadPoolExecutor(
+        max_workers=Config.MAX_WORKERS,
+        thread_name_prefix="pdf-worker"
+    )
 
-            entries = os.listdir(Config.INPUT_FOLDER)
-            if not entries:
-                logger.info("No files found.")
-                return
+    logger.info(f"Thread pool started with {Config.MAX_WORKERS} workers.")
 
-            logger.info(f"Found {len(entries)} entr(y/ies) in input folder.")
 
-            for name in entries:
-                file_path = os.path.join(Config.INPUT_FOLDER, name)
+def run_and_release(file_path):
+    """
+    Runs process_pdf() for a single file, then removes it from the
+    in-flight set so it can be picked up again later if needed
+    (equivalent of DocumentWorker._run_and_release).
+    """
+    try:
+        process_pdf(file_path)
+    finally:
+        with in_flight_lock:
+            in_flight_files.discard(file_path)
 
-                if not os.path.isfile(file_path):
+
+def scan_input_folder():
+    """
+    Equivalent of DocumentWorker.scan_input_folder.
+    """
+    try:
+        logger.info(f"Scanning folder : {Config.INPUT_FOLDER}")
+
+        if not os.path.exists(Config.INPUT_FOLDER):
+            logger.warning(f"Input folder not found : {Config.INPUT_FOLDER}")
+            return
+
+        entries = os.listdir(Config.INPUT_FOLDER)
+        if not entries:
+            logger.info("No files found.")
+            return
+
+        logger.info(f"Found {len(entries)} entr(y/ies) in input folder.")
+
+        for name in entries:
+            file_path = os.path.join(Config.INPUT_FOLDER, name)
+
+            if not os.path.isfile(file_path):
+                continue
+
+            if not is_pdf(file_path):
+                logger.warning(f"Skipping non-PDF file : {name}")
+                continue
+
+            with in_flight_lock:
+                if file_path in in_flight_files:
                     continue
+                in_flight_files.add(file_path)
 
-                if not is_pdf(file_path):
-                    logger.warning(f"Skipping non-PDF file : {name}")
-                    continue
+            logger.info(f"Submitting : {name}")
+            worker_executor.submit(run_and_release, file_path)
 
-                with self._in_flight_lock:
-                    if file_path in self._in_flight:
-                        continue
-                    self._in_flight.add(file_path)
+    except Exception:
+        logger.exception("Folder scanning failed.")
 
-                logger.info(f"Submitting : {name}")
-                self.executor.submit(self._run_and_release, file_path)
 
+def worker_start():
+    """
+    Equivalent of DocumentWorker.start - blocks forever, polling the
+    input folder on Config.POLL_INTERVAL.
+    """
+    logger.info("Document worker started.")
+    while worker_running:
+        try:
+            scan_input_folder()
         except Exception:
-            logger.exception("Folder scanning failed.")
+            logger.exception("Unhandled error in poll loop.")
 
-    def start(self):
-        logger.info("Document worker started.")
-        while self.running:
-            try:
-                self.scan_input_folder()
-            except Exception:
-                logger.exception("Unhandled error in poll loop.")
+        logger.info(f"Sleeping for {Config.POLL_INTERVAL} seconds...")
+        # Sleep in small increments so shutdown is responsive
+        # instead of blocking for up to 5 minutes.
+        slept = 0
+        while slept < Config.POLL_INTERVAL and worker_running:
+            time.sleep(min(1, Config.POLL_INTERVAL - slept))
+            slept += 1
 
-            logger.info(f"Sleeping for {Config.POLL_INTERVAL} seconds...")
-            # Sleep in small increments so shutdown is responsive
-            # instead of blocking for up to 5 minutes.
-            slept = 0
-            while slept < Config.POLL_INTERVAL and self.running:
-                time.sleep(min(1, Config.POLL_INTERVAL - slept))
-                slept += 1
 
-    def stop(self):
-        logger.info("Stopping worker...")
-        self.running = False
-        self.executor.shutdown(wait=True)
-        logger.info("Worker stopped.")
+def worker_stop():
+    """
+    Equivalent of DocumentWorker.stop.
+    """
+    global worker_running
+
+    logger.info("Stopping worker...")
+    worker_running = False
+    if worker_executor is not None:
+        worker_executor.shutdown(wait=True)
+    logger.info("Worker stopped.")
 
 
 # ==========================================================
 # Entry point
 # ==========================================================
 
-worker = None
-
-
 def handle_shutdown(signum, frame):
     logger.info(f"Received signal {signum}. Shutting down gracefully...")
-    if worker is not None:
-        worker.stop()
+    worker_stop()
     if producer is not None:
         producer.close()
     if db_connection is not None:
@@ -407,20 +440,18 @@ def handle_shutdown(signum, frame):
 
 
 def main():
-    global worker
-
     os.makedirs(Config.INPUT_FOLDER, exist_ok=True)
     os.makedirs(Config.WEBFILES_PATH, exist_ok=True)
 
     initialize_database()
     initialize_kafka()
 
-    worker = DocumentWorker()
+    worker_init()
 
     signal.signal(signal.SIGINT, handle_shutdown)
     signal.signal(signal.SIGTERM, handle_shutdown)
 
-    worker.start()  # blocks forever
+    worker_start()  # blocks forever
 
 
 if __name__ == "__main__":
