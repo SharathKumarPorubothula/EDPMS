@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY . .
 
-pip install PyJWT
+RUN pip install PyJWT
 
 EXPOSE 8080
