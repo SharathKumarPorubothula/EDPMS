@@ -22,9 +22,9 @@ jobs:
           docker --version
           docker compose version
 
-      - name: Create .env File
+      - name: Create .env
         run: |
-          cat > .env << EOF
+          cat <<EOF > .env
           LOG_LEVEL=INFO
           LOG_DIR=/tmp
           DB_HOST=localhost
@@ -37,14 +37,38 @@ jobs:
           JWT_EXPIRY_MINUTES=60
           EOF
 
+      - name: Build apache_base image
+        run: |
+          docker build -t apache_base:latest ./apache
+
+      - name: Build Service Bridge
+        run: |
+          docker build -t service_bridge:latest ./services/service-bridge
+
+      - name: Build Auth Service
+        run: |
+          docker build -t auth_service:latest ./services/auth-service
+
+      - name: Build Document Service
+        run: |
+          docker build -t document_service:latest ./services/document-service
+
+      - name: Build Notification Service
+        run: |
+          docker build -t notification_service:latest ./services/notification-service
+
+      - name: Build Worker Service
+        run: |
+          docker build -t worker_service:latest ./services/worker-service
+
       - name: Validate Docker Compose
         run: |
           docker compose config
 
-      - name: Build Docker Images
+      - name: Build Docker Compose
         run: |
           docker compose build
 
-      - name: Show Docker Images
+      - name: Show Images
         run: |
           docker images
