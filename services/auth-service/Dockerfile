@@ -1,9 +1,11 @@
 FROM apache_base:latest
 
-WORKDIR /app
+WORKDIR /auth-service
+
+RUN pip install PyJWT
 
 COPY . .
 
-RUN pip install PyJWT
+CMD ["python3", "app/app.py"]
 
 EXPOSE 8080
