@@ -56,7 +56,7 @@ RUN a2enmod rewrite && \
 # Create Application Directory
 # ==========================================
 
-WORKDIR /app
+WORKDIR /apache
 COPY . .
 
 # ==========================================
