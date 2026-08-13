@@ -33,7 +33,7 @@ services:
     ports:
       - "8761:8761"
     volumes:
-      - ./service-bridge:/app
+      - ./services/service-bridge:/app
     depends_on:
       - apache_base
 
@@ -47,13 +47,12 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./auth:/app
+      - ./services/auth-service:/app
     depends_on:
       - service_bridge
     environment:
       - DB_HOST= ${DB_HOST}
       - DB_PORT= ${DB_PORT}
-      - DB_NAME= ${DB_NAME}
       - DB_USER= ${DB_USER}
       - DB_PASSWORD= ${DB_PASSWORD}
 
@@ -75,7 +74,6 @@ services:
     environment:
       - DB_HOST= ${DB_HOST}
       - DB_PORT= ${DB_PORT}
-      - DB_NAME= ${DB_NAME}
       - DB_USER= ${DB_USER}
       - DB_PASSWORD= ${DB_PASSWORD}
 
@@ -115,7 +113,6 @@ services:
     environment:
       - DB_HOST= ${DB_HOST}
       - DB_PORT= ${DB_PORT}
-      - DB_NAME= ${DB_NAME}
       - DB_USER= ${DB_USER}
       - DB_PASSWORD= ${DB_PASSWORD}
 

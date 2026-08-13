@@ -2,9 +2,9 @@ from flask import Flask, request, jsonify
 import os
 import bcrypt
 
-from validators import Validators
-from ace_logger import AceLogger
-from db_utils import DBUtils
+from app.app.validators import Validators
+from app.app.ace_logger import AceLogger
+from app.app.db_utils import DBUtils
 
 app = Flask(__name__)
 
