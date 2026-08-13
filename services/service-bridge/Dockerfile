@@ -1,10 +1,12 @@
 FROM apache_base:latest
 
-WORKDIR /app
+WORKDIR /service-bridge
+
+RUN pip3 install requests==2.32.5
 
 COPY . .
 
-RUN pip3 install --no-cache-dir requests==2.32.5
+CMD ["python3", "app/app.py"]
 
 EXPOSE 8761
 

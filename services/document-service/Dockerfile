@@ -1,9 +1,11 @@
 FROM apache_base:latest
 
-WORKDIR /app
+WORKDIR /document-service
+
+RUN pip install --no-cache-dir Pillow==11.3.0 pdf2image==1.17.0
 
 COPY . .
 
-RUN pip install --no-cache-dir Pillow==11.3.0 pdf2image==1.17.0
+CMD ["python3", "app/app.py"]
 
 EXPOSE 8081

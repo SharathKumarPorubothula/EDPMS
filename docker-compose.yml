@@ -10,8 +10,6 @@ services:
       - bridge_network
     ports:
       - "80:80"
-    volumes:
-      - ./apache:/var/www/html
     environment:
       - LOG_LEVEL= ${LOG_LEVEL}
       - LOG_DIR= ${LOG_DIR}
@@ -32,8 +30,6 @@ services:
       - bridge_network
     ports:
       - "8761:8761"
-    volumes:
-      - ./services/service-bridge:/app
     depends_on:
       - apache_base
 
@@ -46,8 +42,6 @@ services:
       - bridge_network
     ports:
       - "8080:8080"
-    volumes:
-      - ./services/auth-service:/app
     depends_on:
       - service_bridge
     environment:
@@ -86,8 +80,6 @@ services:
   #     - bridge_network
   #   ports:
   #     - "8082:8082"
-  #   volumes:
-  #     - ./notification:/app
   #   depends_on:
   #     - service_bridge
   #   environment:
@@ -106,8 +98,6 @@ services:
       - bridge_network
     ports:
       - "8083:8083"
-    volumes:
-      - ./workflow:/app
     depends_on:
       - service_bridge
     environment:
