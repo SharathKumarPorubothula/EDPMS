@@ -5,7 +5,7 @@ import requests
 from flask import Flask, request, Response, jsonify
 
 app = Flask(__name__)
-
+#this is app
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "bridge_config.json")
 
 

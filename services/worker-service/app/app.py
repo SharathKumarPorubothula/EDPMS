@@ -18,10 +18,10 @@ The Kafka consumer handles all processing.
 import signal
 import sys
 
-from ace_logger import AceLogger
-from config import Config
-from db_utils import DBUtils
-from consumer import OCRConsumer
+from .ace_logger import AceLogger
+from .config import Config
+from .db_utils import DBUtils
+from .consumer import OCRConsumer
 
 
 # ==========================================================

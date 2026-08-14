@@ -4,7 +4,7 @@ Business Field Extraction
 Extracts business fields from validated OCR output.
 """
 import re
-from ace_logger import AceLogger
+from .ace_logger import AceLogger
 
 logger = AceLogger.get_logger("field_extractor")
 

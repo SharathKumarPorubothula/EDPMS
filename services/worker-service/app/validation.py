@@ -14,8 +14,8 @@ Responsibilities
 
 import re
 
-from ace_logger import AceLogger
-from config import Config
+from .ace_logger import AceLogger
+from .config import Config
 
 
 logger = AceLogger.get_logger("ocr_validator")

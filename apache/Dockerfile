@@ -28,6 +28,9 @@ RUN apt-get update && apt-get install -y \
     iputils-ping \
     ca-certificates \
     tzdata \
+    poppler-utils \
+    tesseract-ocr \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 # ==========================================

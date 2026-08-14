@@ -27,15 +27,15 @@ import os
 
 from kafka import KafkaConsumer
 
-from ace_logger import AceLogger
-from config import Config
-from db_utils import DBUtils
+from .ace_logger import AceLogger
+from .config import Config
+from .db_utils import DBUtils
 
 # These modules are used by the pipeline
-from ocr_engine import OCREngine
-from output_writer import OutputWriter
-from validation import OCRValidator
-from field_extractor import FieldExtractor
+from .ocr_engine import OCREngine
+from .output_writer import OutputWriter
+from .validation import OCRValidator
+from .field_extractor import FieldExtractor
 
 logger = AceLogger.get_logger("ocr_consumer")
 

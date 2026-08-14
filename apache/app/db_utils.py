@@ -15,7 +15,7 @@ Features:
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from ace_logger import AceLogger
+from .ace_logger import AceLogger
 
 
 logger = AceLogger.get_logger("db_utils")

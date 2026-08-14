@@ -1,13 +1,13 @@
 [
     {
         "login": {
-            "HOST": "auth-service",
+            "HOST": "auth_service",
             "PORT": 8080
         }
     },
     {
         "register": {
-            "HOST": "auth-service",
+            "HOST": "auth_service",
             "PORT": 8080
         }
     },

@@ -16,8 +16,8 @@ import xml.etree.ElementTree as ET
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
-from ace_logger import AceLogger
-from config import Config
+from .ace_logger import AceLogger
+from .config import Config
 
 logger = AceLogger.get_logger("output_writer")
 

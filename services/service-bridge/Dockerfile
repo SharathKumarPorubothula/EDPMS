@@ -9,3 +9,5 @@ COPY . .
 CMD ["python3", "app/app.py"]
 
 EXPOSE 8761
+
+CMD ["python3", "app/app.py"]

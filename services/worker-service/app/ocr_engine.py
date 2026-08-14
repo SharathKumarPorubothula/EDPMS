@@ -18,9 +18,9 @@ import pytesseract
 from pdf2image import convert_from_path
 from paddleocr import PaddleOCR
 
-from ace_logger import AceLogger
-from config import Config
-from image_preprocessing import ImagePreprocessor
+from .ace_logger import AceLogger
+from .config import Config
+from .image_preprocessing import ImagePreprocessor
 
 logger = AceLogger.get_logger("ocr_engine")
 
