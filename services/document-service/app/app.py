@@ -41,9 +41,9 @@ from pathlib import Path
 from kafka import KafkaProducer
 from pdf2image import convert_from_path
 
-from ace_logger import AceLogger
-from config import Config
-from db_utils import DBUtils
+from .ace_logger import AceLogger
+from .config import Config
+from .db_utils import DBUtils
 
 
 # ==========================================================
@@ -86,19 +86,31 @@ producer = None
 
 def initialize_kafka():
     global producer
-    try:
-        producer = KafkaProducer(
-            bootstrap_servers=Config.KAFKA_BOOTSTRAP_SERVERS,
-            value_serializer=lambda value: json.dumps(value).encode("utf-8"),
-            retries=5,
-            acks="all"
-        )
-        logger.info(
-            f"Kafka producer initialized -> {Config.KAFKA_BOOTSTRAP_SERVERS}"
-        )
-    except Exception:
-        logger.exception("Kafka initialization failed.")
-        producer = None
+
+    while producer is None:
+        try:
+            logger.info(
+                f"Connecting to Kafka -> {Config.KAFKA_BOOTSTRAP_SERVERS}"
+            )
+
+            producer = KafkaProducer(
+                bootstrap_servers=Config.KAFKA_BOOTSTRAP_SERVERS,
+                value_serializer=lambda value: json.dumps(value).encode("utf-8"),
+                retries=5,
+                acks="all"
+            )
+
+            logger.info(
+                f"Kafka producer initialized -> {Config.KAFKA_BOOTSTRAP_SERVERS}"
+            )
+
+        except Exception:
+            logger.exception(
+                "Kafka initialization failed. Retrying in 5 seconds..."
+            )
+
+            producer = None
+            time.sleep(5)
 
 
 def send_kafka_message(document_id, filename, image_names):

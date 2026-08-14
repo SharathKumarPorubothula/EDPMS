@@ -45,10 +45,14 @@ services:
     depends_on:
       - service_bridge
     environment:
-      - DB_HOST= ${DB_HOST}
-      - DB_PORT= ${DB_PORT}
-      - DB_USER= ${DB_USER}
-      - DB_PASSWORD= ${DB_PASSWORD}
+        DB_HOST: ${DB_HOST}
+        DB_PORT: ${DB_PORT}
+        DB_NAME: ${DB_NAME}
+        DB_USER: ${DB_USER}
+        DB_PASSWORD: ${DB_PASSWORD}
+        JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+        JWT_ALGORITHM: ${JWT_ALGORITHM}
+        JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES}
 
 
   document_service:
@@ -60,16 +64,29 @@ services:
       - bridge_network
     ports:
       - "8081:8081"
-    #volumes:
-      #- C:\Users\User\Desktop\New folder (2)\EDPMS\input:/input
-      #- C:\Users\User\Desktop\New folder (2)\EDPMS\webfiles:/webfiles
+    volumes:
+      - "C:/Users/SANDEEP/OneDrive/Desktop/New folder/EDPMS/input:/document-service/input"
+      - "C:/Users/SANDEEP/OneDrive/Desktop/New folder/EDPMS/webfiles:/document-service/webfiles"
     depends_on:
       - service_bridge
     environment:
-      - DB_HOST= ${DB_HOST}
-      - DB_PORT= ${DB_PORT}
-      - DB_USER= ${DB_USER}
-      - DB_PASSWORD= ${DB_PASSWORD}
+        DB_HOST: ${DB_HOST}
+        DB_PORT: ${DB_PORT}
+        DB_NAME: ${DB_NAME}
+        DB_USER: ${DB_USER}
+        DB_PASSWORD: ${DB_PASSWORD}
+        INPUT_FOLDER: ${INPUT_FOLDER}
+        WEBFILES_PATH: ${WEBFILES_PATH}
+        POLL_INTERVAL: ${POLL_INTERVAL}
+        MAX_WORKERS: ${MAX_WORKERS}
+        DEFAULT_USER_ID: ${DEFAULT_USER_ID}
+
+        KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+        KAFKA_TOPIC: ${KAFKA_TOPIC}
+
+        IMAGE_FORMAT: ${IMAGE_FORMAT}
+        IMAGE_EXTENSION: ${IMAGE_EXTENSION}
+        IMAGE_DPI: ${IMAGE_DPI}
 
   # notification_service:
   #   image: notification_service:latest
@@ -100,41 +117,86 @@ services:
       - "8083:8083"
     depends_on:
       - service_bridge
+      - kafka
     environment:
-      - DB_HOST= ${DB_HOST}
-      - DB_PORT= ${DB_PORT}
-      - DB_USER= ${DB_USER}
-      - DB_PASSWORD= ${DB_PASSWORD}
+        DB_HOST: ${DB_HOST}
+        DB_PORT: ${DB_PORT}
+        DB_NAME: ${DB_NAME}
+        DB_USER: ${DB_USER}
+
+        APP_NAME: ${APP_NAME}
+        LOG_LEVEL: ${LOG_LEVEL}
+        LOG_DIR: ${LOG_DIR}
+
+        KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+        KAFKA_TOPIC: ${KAFKA_TOPIC}
+        KAFKA_GROUP_ID: ${KAFKA_GROUP_ID}
+        KAFKA_AUTO_OFFSET_RESET: ${KAFKA_AUTO_OFFSET_RESET}
+        ENABLE_AUTO_COMMIT: ${ENABLE_AUTO_COMMIT}
+
+        OCR_ENGINE: ${OCR_ENGINE}
+        OCR_LANGUAGE: ${OCR_LANGUAGE}
+        OCR_DPI: ${OCR_DPI}
+
+        TESSERACT_CMD: ${TESSERACT_CMD}
+
+        ABBYY_LICENSE_PATH: ${ABBYY_LICENSE_PATH}
+        ABBYY_PROJECT_PATH: ${ABBYY_PROJECT_PATH}
+
+        USE_GPU: ${USE_GPU}
+
+        WEBFILES_PATH: ${WEBFILES_PATH}
+        OUTPUT_FOLDER: ${OUTPUT_FOLDER}
+        TEMP_FOLDER: ${TEMP_FOLDER}
+
+        IMAGE_FORMAT: ${IMAGE_FORMAT}
+        IMAGE_EXTENSION: ${IMAGE_EXTENSION}
+        IMAGE_DPI: ${IMAGE_DPI}
+        IMAGE_QUALITY: ${IMAGE_QUALITY}
+
+        MIN_CONFIDENCE: ${MIN_CONFIDENCE}
+
+        GENERATE_JSON: ${GENERATE_JSON}
+        GENERATE_XML: ${GENERATE_XML}
+        GENERATE_TXT: ${GENERATE_TXT}
+        GENERATE_SEARCHABLE_PDF: ${GENERATE_SEARCHABLE_PDF}
+
+
 
   zookeeper:
-    #image: bitnami/zookeeper
     image: confluentinc/cp-zookeeper:7.7.1
     container_name: zookeeper
     restart: always
     environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
     networks:
       - bridge_network
 
   kafka:
-    #image: bitnami/kafka
     image: confluentinc/cp-kafka:7.7.1
     container_name: kafka
     restart: always
     depends_on:
       - zookeeper
     environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
     ports:
       - "9092:9092"
     networks:
       - bridge_network
-
 networks:
   bridge_network:
     driver: bridge

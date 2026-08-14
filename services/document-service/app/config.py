@@ -23,12 +23,12 @@ class Config:
 
     INPUT_FOLDER = os.getenv(
         "INPUT_FOLDER",
-        r"C:\Users\User\Desktop\New folder (2)\EDPMS\input"
+        r"C:\Users\SANDEEP\OneDrive\Desktop\New folder\EDPMS\input"
     )
 
     WEBFILES_PATH = os.getenv(
         "WEBFILES_PATH",
-        r"C:\Users\User\Desktop\New folder (2)\EDPMS\webfiles"
+        r"C:\Users\SANDEEP\OneDrive\Desktop\New folder\EDPMS\webfiles"
     )
 
     # ==========================
@@ -63,7 +63,7 @@ class Config:
 
     DB_NAME = os.getenv("DB_NAME")
 
-    DB_USERNAME = os.getenv("DB_USERNAME")
+    DB_USERNAME = os.getenv("DB_USER")
 
     DB_PASSWORD = os.getenv("DB_PASSWORD")
 

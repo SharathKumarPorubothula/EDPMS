@@ -2,13 +2,15 @@ from flask import Flask, request, jsonify
 import os
 import bcrypt
 
-from app.app.validators import Validators
-from app.app.ace_logger import AceLogger
-from app.app.db_utils import DBUtils
+from .validators import Validators
+from .ace_logger import AceLogger
+from .db_utils import DBUtils
+from .jwt_utils import JWTUtils
 
 app = Flask(__name__)
 
 logger = AceLogger.get_logger("auth_service")
+jwt_utils = JWTUtils()
 
 
 @app.route("/register", methods=["POST"])
@@ -308,7 +310,7 @@ def login():
         # Generate JWT Token
         # ----------------------------------------
 
-        access_token = JWTUtils.generate_token(
+        access_token = jwt_utils.generate_token(
             user_id=user["id"],
             email=user["email"],
             role=user["role"]
@@ -341,7 +343,7 @@ def login():
         audit_connection = DBUtils.get_connection(
             host=os.getenv("DB_HOST"),
             port=os.getenv("DB_PORT"),
-            database="edpms_audit_logs",
+            database=os.getenv("DB_NAME"),
             username=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD")
         )

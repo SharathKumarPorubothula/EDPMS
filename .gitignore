@@ -1,0 +1,7 @@
+webfiles/
+
+__pycache__/
+*.pyc
+logs/
+venv/
+.venv/

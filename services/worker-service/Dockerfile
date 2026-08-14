@@ -2,8 +2,17 @@ FROM apache_base:latest
 
 WORKDIR /worker-service
 
-COPY . .
+RUN pip install --no-cache-dir \
+    opencv-python-headless \
+    pytesseract \
+    pdf2image \
+    paddleocr \
+    reportlab
 
-CMD ["python3", "app/app.py"]
+COPY . .
+COPY --from=apache_base /app/app/ace_logger.py /worker-service/app/ace_logger.py
+COPY --from=apache_base /app/app/db_utils.py /worker-service/app/db_utils.py
+
+CMD ["python3","-m", "app.app"]
 
 EXPOSE 8083

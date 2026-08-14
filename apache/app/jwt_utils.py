@@ -18,7 +18,7 @@ import os
 import jwt
 from datetime import datetime, timedelta
 
-from ace_logger import AceLogger
+from .ace_logger import AceLogger
 
 
 logger = AceLogger.get_logger("jwt_utils")
