@@ -42,6 +42,7 @@ RUN apt-get update && apt-get install -y \
 # Install Common Python Packages
 # ==========================================
 COPY requirements.txt .
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
 
 RUN pip install --no-cache-dir -r requirements.txt
 
